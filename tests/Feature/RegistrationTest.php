@@ -110,6 +110,46 @@ test('rejects a confirmation that does not match and stores text safely', functi
         ->and(User::query()->count())->toBe(1);
 });
 
+test('sends a duplicate firm to the login page', function () {
+    Organization::factory()->create([
+        'name' => 'North Office',
+    ]);
+
+    $this->from(route('register'))
+        ->post(route('register.firm'), [
+            'organization_name' => 'South Office',
+        ])
+        ->assertRedirect(route('register'))
+        ->assertSessionMissing('status');
+
+    $this->from(route('register'))
+        ->post(route('register.firm'), [
+            'organization_name' => 'north office',
+        ])
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'That firm is already registered. Log in instead.');
+
+    $this->get(route('login'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->where(
+            'flash.status',
+            'That firm is already registered. Log in instead.',
+        ));
+
+    $this->post(route('register.store'), [
+        'organization_name' => 'North <b>Office</b>',
+        'name' => 'Ava Supervisor',
+        'email' => 'ava@north.test',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
+    ])->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'That firm is already registered. Log in instead.');
+
+    $this->assertGuest();
+    expect(Organization::query()->where('name', 'North Office')->count())->toBe(1)
+        ->and(User::query()->count())->toBe(0);
+});
+
 test('rejects a password that is missing a letter or a number', function () {
     $this->post(route('register.store'), [
         'organization_name' => 'North Office',

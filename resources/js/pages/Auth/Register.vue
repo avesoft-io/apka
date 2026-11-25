@@ -2,6 +2,7 @@
 import { create as login } from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
 import {
     email as checkEmail,
+    firm as checkFirm,
     store,
 } from '@/actions/App/Http/Controllers/RegisteredUserController';
 import AppLogo from '@/components/AppLogo.vue';
@@ -9,7 +10,7 @@ import FormError from '@/components/FormError.vue';
 import { passwordError, passwordStrength } from '@/lib/password';
 import { buttonClass, inputClass, labelClass, mutedClass } from '@/lib/ui';
 import { home } from '@/routes';
-import { Head, Link, useForm, useHttp, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, useHttp, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const name = usePage().props.name;
@@ -46,6 +47,21 @@ const emailCheck = useHttp<{ email: string }, { message: string | null }>({
     email: '',
 });
 let emailCheckId = 0;
+
+function verifyFirm() {
+    if (form.organization_name.trim().length === 0) {
+        return;
+    }
+
+    router.post(
+        checkFirm.url(),
+        { organization_name: form.organization_name },
+        {
+            preserveState: true,
+            preserveScroll: true,
+        },
+    );
+}
 
 function verifyPassword() {
     if (form.password.length > 0) {
@@ -127,6 +143,7 @@ function submit() {
                     required
                     autofocus
                     :class="inputClass"
+                    @blur="verifyFirm"
                 />
             </label>
             <FormError :message="form.errors.organization_name" />

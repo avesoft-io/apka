@@ -21,6 +21,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             flash: {
                 success: string | null;
+                status: string | null;
             };
             today: string;
             [key: string]: unknown;
