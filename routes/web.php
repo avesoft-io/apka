@@ -21,6 +21,9 @@ Route::get('/', function () {
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login/email', [AuthenticatedSessionController::class, 'email'])
+        ->middleware('throttle:30,1')
+        ->name('login.email');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('login.store');
