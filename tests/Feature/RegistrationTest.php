@@ -11,8 +11,8 @@ test('registers a firm and keeps its records private', function () {
         'organization_name' => 'North Office',
         'name' => 'Ava Supervisor',
         'email' => 'ava@north.test',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
     ])->assertRedirect(route('verification.notice'));
 
     $this->assertAuthenticated();
@@ -32,8 +32,8 @@ test('registers a firm and keeps its records private', function () {
         'organization_name' => 'South Office',
         'name' => 'Ben Supervisor',
         'email' => 'ben@south.test',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
     ])->assertRedirect(route('verification.notice'));
 
     $ben = User::query()->where('email', 'ben@south.test')->firstOrFail();
@@ -62,6 +62,26 @@ test('rejects a duplicate email and a short password', function () {
         'password' => 'short',
         'password_confirmation' => 'short',
     ])->assertSessionHasErrors(['email', 'password']);
+
+    expect(Organization::query()->where('name', 'North Office')->exists())->toBeFalse();
+});
+
+test('rejects a password that is missing a letter or a number', function () {
+    $this->post(route('register.store'), [
+        'organization_name' => 'North Office',
+        'name' => 'Ava Supervisor',
+        'email' => 'ava@north.test',
+        'password' => 'password',
+        'password_confirmation' => 'password',
+    ])->assertSessionHasErrors('password');
+
+    $this->post(route('register.store'), [
+        'organization_name' => 'North Office',
+        'name' => 'Ava Supervisor',
+        'email' => 'ava@north.test',
+        'password' => '12345678',
+        'password_confirmation' => '12345678',
+    ])->assertSessionHasErrors('password');
 
     expect(Organization::query()->where('name', 'North Office')->exists())->toBeFalse();
 });

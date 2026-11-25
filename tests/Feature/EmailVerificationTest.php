@@ -13,8 +13,8 @@ test('a new firm must verify its email within five minutes', function () {
         'organization_name' => 'North Office',
         'name' => 'Ava Supervisor',
         'email' => 'ava@north.test',
-        'password' => 'password',
-        'password_confirmation' => 'password',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
     ])->assertRedirect(route('verification.notice'));
 
     $user = User::query()->where('email', 'ava@north.test')->firstOrFail();

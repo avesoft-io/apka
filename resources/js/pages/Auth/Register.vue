@@ -3,9 +3,11 @@ import { create as login } from '@/actions/App/Http/Controllers/AuthenticatedSes
 import { store } from '@/actions/App/Http/Controllers/RegisteredUserController';
 import AppLogo from '@/components/AppLogo.vue';
 import FormError from '@/components/FormError.vue';
+import { passwordRules, passwordStrength } from '@/lib/password';
 import { buttonClass, inputClass, labelClass, mutedClass } from '@/lib/ui';
 import { home } from '@/routes';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const name = usePage().props.name;
 
@@ -16,6 +18,9 @@ const form = useForm({
     password: '',
     password_confirmation: '',
 });
+
+const rules = computed(() => passwordRules(form.password));
+const strength = computed(() => passwordStrength(form.password));
 
 function submit() {
     form.post(store.url());
@@ -76,9 +81,39 @@ function submit() {
                     v-model="form.password"
                     type="password"
                     required
+                    autocomplete="new-password"
                     :class="inputClass"
                 />
             </label>
+            <div class="flex flex-col gap-2">
+                <p v-if="strength" class="text-sm">
+                    Strength:
+                    <span class="font-medium">{{ strength.label }}</span>
+                </p>
+                <div
+                    class="h-1.5 overflow-hidden rounded bg-[#e3e3e0] dark:bg-[#3E3E3A]"
+                    aria-hidden="true"
+                >
+                    <div
+                        v-if="strength"
+                        class="h-full"
+                        :class="[strength.width, strength.barClass]"
+                    />
+                </div>
+                <ul class="flex flex-col gap-1 text-sm">
+                    <li
+                        v-for="rule in rules"
+                        :key="rule.label"
+                        :class="
+                            rule.met
+                                ? 'text-[#0f3d3e] dark:text-[#7daba8]'
+                                : 'text-[#706f6c] dark:text-[#A1A09A]'
+                        "
+                    >
+                        {{ rule.met ? 'Met' : 'Needed' }}: {{ rule.label }}
+                    </li>
+                </ul>
+            </div>
             <FormError :message="form.errors.password" />
             <label :class="labelClass">
                 Confirm password
