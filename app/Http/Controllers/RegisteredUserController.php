@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreRegistrationRequest;
 use App\Models\Organization;
 use App\Models\User;
+use App\PlainText;
 use App\Rules\FilterEmail;
 use App\UserRole;
 use Database\Seeders\EmailTemplateSeeder;
@@ -26,7 +27,9 @@ class RegisteredUserController extends Controller
 
     public function email(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        $validator = Validator::make([
+            'email' => PlainText::clean($request->input('email')),
+        ], [
             'email' => ['nullable', 'string', 'max:255', new FilterEmail],
         ]);
 

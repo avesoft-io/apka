@@ -29,6 +29,18 @@ const clientPasswordError = computed(() =>
         ? (passwordError(form.password) ?? undefined)
         : undefined,
 );
+const confirmationChecked = ref(false);
+const clientConfirmationError = computed(() => {
+    if (
+        !confirmationChecked.value ||
+        form.password_confirmation.length === 0 ||
+        form.password_confirmation === form.password
+    ) {
+        return undefined;
+    }
+
+    return 'Passwords do not match.';
+});
 const clientEmailError = ref<string>();
 const emailCheck = useHttp<{ email: string }, { message: string | null }>({
     email: '',
@@ -72,8 +84,15 @@ async function verifyEmail() {
     }
 }
 
+function verifyConfirmation() {
+    if (form.password_confirmation.length > 0) {
+        confirmationChecked.value = true;
+    }
+}
+
 function submit() {
     verifyPassword();
+    verifyConfirmation();
     form.post(store.url());
 }
 </script>
@@ -171,9 +190,17 @@ function submit() {
                     v-model="form.password_confirmation"
                     type="password"
                     required
+                    autocomplete="new-password"
+                    :aria-invalid="Boolean(clientConfirmationError)"
                     :class="inputClass"
+                    @focus="verifyConfirmation"
+                    @input="verifyConfirmation"
+                    @blur="verifyConfirmation"
                 />
             </label>
+            <div aria-live="polite">
+                <FormError :message="clientConfirmationError" />
+            </div>
             <button
                 type="submit"
                 :class="buttonClass"
