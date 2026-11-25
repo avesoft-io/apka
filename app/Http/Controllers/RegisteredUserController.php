@@ -20,6 +20,8 @@ use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
+    private const string ALREADY_REGISTERED = 'That firm is already registered. Log in instead.';
+
     public function create(): Response
     {
         return Inertia::render('Auth/Register');
@@ -40,8 +42,23 @@ class RegisteredUserController extends Controller
         ]);
     }
 
+    public function firm(Request $request): RedirectResponse
+    {
+        $name = PlainText::clean($request->input('organization_name'));
+
+        if (is_string($name) && $this->firmIsRegistered($name)) {
+            return $this->redirectToLogin();
+        }
+
+        return back();
+    }
+
     public function store(StoreRegistrationRequest $request): RedirectResponse
     {
+        if ($this->firmIsRegistered($request->string('organization_name')->toString())) {
+            return $this->redirectToLogin();
+        }
+
         $user = DB::transaction(function () use ($request): User {
             $organization = Organization::query()->create([
                 'name' => $request->string('organization_name')->toString(),
@@ -63,5 +80,19 @@ class RegisteredUserController extends Controller
         $user->sendEmailVerificationNotification();
 
         return redirect()->route('verification.notice');
+    }
+
+    private function firmIsRegistered(string $name): bool
+    {
+        if ($name === '') {
+            return false;
+        }
+
+        return Organization::query()->registeredName($name)->exists();
+    }
+
+    private function redirectToLogin(): RedirectResponse
+    {
+        return redirect()->route('login')->with('status', self::ALREADY_REGISTERED);
     }
 }

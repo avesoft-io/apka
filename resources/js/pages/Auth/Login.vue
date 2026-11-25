@@ -9,9 +9,11 @@ import AppLogo from '@/components/AppLogo.vue';
 import FormError from '@/components/FormError.vue';
 import { buttonClass, inputClass } from '@/lib/ui';
 import { Head, Link, useForm, useHttp, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
-const name = usePage().props.name;
+const page = usePage();
+const name = page.props.name;
+const status = computed(() => page.props.flash.status);
 
 const form = useForm({
     email: '',
@@ -80,6 +82,13 @@ function submit() {
             </h1>
             <p class="mt-1 text-sm text-[#706f6c] dark:text-[#A1A09A]">
                 Sign in to see your office actions.
+            </p>
+            <p
+                v-if="status"
+                class="mt-4 text-sm text-[#0f3d3e] dark:text-[#7daba8]"
+                role="status"
+            >
+                {{ status }}
             </p>
             <label class="mt-5 block text-sm">
                 Email

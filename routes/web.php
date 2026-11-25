@@ -31,6 +31,9 @@ Route::middleware('guest')->group(function () {
     Route::post('/register/email', [RegisteredUserController::class, 'email'])
         ->middleware('throttle:30,1')
         ->name('register.email');
+    Route::post('/register/firm', [RegisteredUserController::class, 'firm'])
+        ->middleware('throttle:30,1')
+        ->name('register.firm');
     Route::post('/register', [RegisteredUserController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('register.store');
