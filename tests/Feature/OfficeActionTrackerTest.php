@@ -385,7 +385,10 @@ test('adds a user to the supervisor firm and keeps that user out of other firms'
 
     $user = User::query()->where('email', 'new.attorney@north.test')->firstOrFail();
 
-    expect($user->organization_id)->toBe($firm->id);
+    expect($user->organization_id)->toBe($firm->id)
+        ->and($user->hasVerifiedEmail())->toBeFalse();
+
+    $user->markEmailAsVerified();
 
     $this->actingAs($user)
         ->get(route('office-actions.show', $officeAction))

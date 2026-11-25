@@ -17,23 +17,38 @@ class StaffController extends Controller
         Gate::authorize('viewAny', User::class);
 
         return Inertia::render('Staff/Index', [
-            'staff' => User::query()->orderBy('name')->get(['id', 'name', 'email', 'role']),
+            'staff' => User::query()
+                ->orderBy('name')
+                ->get()
+                ->map(fn (User $user): array => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role->value,
+                    'verified' => $user->hasVerifiedEmail(),
+                ])
+                ->all(),
             'roles' => UserRole::options(),
         ]);
     }
 
     public function store(StoreStaffRequest $request): RedirectResponse
     {
-        User::query()->create([
-            'organization_id' => $this->actor($request)->organization_id,
+        $actor = $this->actor($request);
+
+        $user = User::query()->create([
+            'organization_id' => $actor->organization_id,
+            'invited_by_id' => $actor->id,
             'name' => $request->string('name')->toString(),
             'email' => $request->string('email')->toString(),
             'password' => $request->string('password')->toString(),
             'role' => UserRole::from($request->string('role')->toString()),
         ]);
 
+        $user->sendEmailVerificationNotification();
+
         return redirect()
             ->route('staff.index')
-            ->with('success', 'User added to your firm.');
+            ->with('success', 'User added. We emailed them a verification link that expires in 5 minutes.');
     }
 }

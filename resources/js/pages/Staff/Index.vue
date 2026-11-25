@@ -19,6 +19,7 @@ defineProps<{
         name: string;
         email: string;
         role: string;
+        verified: boolean;
     }>;
     roles: TypeOption[];
 }>();
@@ -49,8 +50,9 @@ function submit() {
         <div>
             <h1 class="text-2xl font-semibold">Users</h1>
             <p :class="mutedClass">
-                Add people to {{ firmName }}. They can sign in and see only this
-                firm.
+                Add people to {{ firmName }}. They can use only this firm, after
+                they confirm the verification email. The link expires in 5
+                minutes, and the email does not include their password.
             </p>
         </div>
 
@@ -124,6 +126,7 @@ function submit() {
                         <th class="px-4 py-2 font-medium">Name</th>
                         <th class="px-4 py-2 font-medium">Email</th>
                         <th class="px-4 py-2 font-medium">Role</th>
+                        <th class="px-4 py-2 font-medium">Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -135,6 +138,9 @@ function submit() {
                         <td class="px-4 py-3">{{ person.name }}</td>
                         <td class="px-4 py-3">{{ person.email }}</td>
                         <td class="px-4 py-3 capitalize">{{ person.role }}</td>
+                        <td class="px-4 py-3">
+                            {{ person.verified ? 'Verified' : 'Pending' }}
+                        </td>
                     </tr>
                 </tbody>
             </table>

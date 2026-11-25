@@ -13,7 +13,7 @@ test('registers a firm and keeps its records private', function () {
         'email' => 'ava@north.test',
         'password' => 'password',
         'password_confirmation' => 'password',
-    ])->assertRedirect(route('dashboard'));
+    ])->assertRedirect(route('verification.notice'));
 
     $this->assertAuthenticated();
 
@@ -34,7 +34,11 @@ test('registers a firm and keeps its records private', function () {
         'email' => 'ben@south.test',
         'password' => 'password',
         'password_confirmation' => 'password',
-    ])->assertRedirect(route('dashboard'));
+    ])->assertRedirect(route('verification.notice'));
+
+    $ben = User::query()->where('email', 'ben@south.test')->firstOrFail();
+    $ben->markEmailAsVerified();
+    $this->actingAs($ben);
 
     $this->get(route('office-actions.show', $officeAction))->assertNotFound();
 
