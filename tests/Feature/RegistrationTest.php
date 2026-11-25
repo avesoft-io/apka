@@ -66,6 +66,26 @@ test('rejects a duplicate email and a short password', function () {
     expect(Organization::query()->where('name', 'North Office')->exists())->toBeFalse();
 });
 
+test('rejects an email that fails the PHP email filter', function () {
+    $this->post(route('register.store'), [
+        'organization_name' => 'North Office',
+        'name' => 'Ava Supervisor',
+        'email' => 'not-an-email',
+        'password' => 'password1',
+        'password_confirmation' => 'password1',
+    ])->assertSessionHasErrors('email');
+
+    $this->postJson(route('register.email'), [
+        'email' => 'not-an-email',
+    ])->assertOk()->assertJson(['message' => 'Enter a valid email address.']);
+
+    $this->postJson(route('register.email'), [
+        'email' => 'ava@north.test',
+    ])->assertOk()->assertJson(['message' => null]);
+
+    expect(Organization::query()->where('name', 'North Office')->exists())->toBeFalse();
+});
+
 test('rejects a password that is missing a letter or a number', function () {
     $this->post(route('register.store'), [
         'organization_name' => 'North Office',

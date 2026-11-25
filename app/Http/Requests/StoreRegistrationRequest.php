@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\FilterEmail;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -22,7 +23,7 @@ class StoreRegistrationRequest extends FormRequest
         return [
             'organization_name' => ['required', 'string', 'max:255'],
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
+            'email' => ['required', 'string', 'max:255', new FilterEmail, Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'confirmed', Password::min(8)->letters()->numbers()],
         ];
     }

@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { create as login } from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
-import { store } from '@/actions/App/Http/Controllers/RegisteredUserController';
+import {
+    email as checkEmail,
+    store,
+} from '@/actions/App/Http/Controllers/RegisteredUserController';
 import AppLogo from '@/components/AppLogo.vue';
 import FormError from '@/components/FormError.vue';
 import { passwordError, passwordStrength } from '@/lib/password';
 import { buttonClass, inputClass, labelClass, mutedClass } from '@/lib/ui';
 import { home } from '@/routes';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, useHttp, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const name = usePage().props.name;
@@ -26,10 +29,46 @@ const clientPasswordError = computed(() =>
         ? (passwordError(form.password) ?? undefined)
         : undefined,
 );
+const clientEmailError = ref<string>();
+const emailCheck = useHttp<{ email: string }, { message: string | null }>({
+    email: '',
+});
+let emailCheckId = 0;
 
 function verifyPassword() {
     if (form.password.length > 0) {
         passwordChecked.value = true;
+    }
+}
+
+function clearEmailError() {
+    emailCheckId += 1;
+    emailCheck.cancel();
+    clientEmailError.value = undefined;
+}
+
+async function verifyEmail() {
+    if (form.email.length === 0) {
+        clearEmailError();
+
+        return;
+    }
+
+    const check = ++emailCheckId;
+    emailCheck.email = form.email;
+
+    try {
+        const response = await emailCheck.post(checkEmail.url());
+
+        if (check !== emailCheckId) {
+            return;
+        }
+
+        clientEmailError.value = response.message ?? undefined;
+    } catch {
+        if (check === emailCheckId) {
+            clientEmailError.value = undefined;
+        }
     }
 }
 
@@ -83,10 +122,15 @@ function submit() {
                     v-model="form.email"
                     type="email"
                     required
+                    :aria-invalid="Boolean(clientEmailError)"
                     :class="inputClass"
+                    @input="clearEmailError"
+                    @blur="verifyEmail"
                 />
             </label>
-            <FormError :message="form.errors.email" />
+            <div aria-live="polite">
+                <FormError :message="form.errors.email ?? clientEmailError" />
+            </div>
             <label :class="labelClass">
                 Password
                 <input
