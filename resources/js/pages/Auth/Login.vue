@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { store } from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
+import {
+    email as checkEmail,
+    store,
+} from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
 import { create as register } from '@/actions/App/Http/Controllers/RegisteredUserController';
 import { home } from '@/routes';
 import AppLogo from '@/components/AppLogo.vue';
+import FormError from '@/components/FormError.vue';
 import { buttonClass, inputClass } from '@/lib/ui';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, useHttp, usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const name = usePage().props.name;
 
@@ -13,6 +18,43 @@ const form = useForm({
     password: '',
     remember: false,
 });
+
+const clientEmailError = ref<string>();
+const emailCheck = useHttp<{ email: string }, { message: string | null }>({
+    email: '',
+});
+let emailCheckId = 0;
+
+function clearEmailError() {
+    emailCheckId += 1;
+    emailCheck.cancel();
+    clientEmailError.value = undefined;
+}
+
+async function verifyEmail() {
+    if (form.email.length === 0) {
+        clearEmailError();
+
+        return;
+    }
+
+    const check = ++emailCheckId;
+    emailCheck.email = form.email;
+
+    try {
+        const response = await emailCheck.post(checkEmail.url());
+
+        if (check !== emailCheckId) {
+            return;
+        }
+
+        clientEmailError.value = response.message ?? undefined;
+    } catch {
+        if (check === emailCheckId) {
+            clientEmailError.value = undefined;
+        }
+    }
+}
 
 function submit() {
     form.post(store.url(), {
@@ -46,12 +88,17 @@ function submit() {
                     type="email"
                     required
                     autofocus
+                    :aria-invalid="
+                        Boolean(form.errors.email || clientEmailError)
+                    "
                     :class="inputClass"
+                    @input="clearEmailError"
+                    @blur="verifyEmail"
                 />
             </label>
-            <p v-if="form.errors.email" class="mt-1 text-sm text-red-700">
-                {{ form.errors.email }}
-            </p>
+            <div aria-live="polite">
+                <FormError :message="form.errors.email ?? clientEmailError" />
+            </div>
             <label class="mt-4 block text-sm">
                 Password
                 <input
