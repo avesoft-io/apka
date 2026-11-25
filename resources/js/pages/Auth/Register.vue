@@ -3,11 +3,11 @@ import { create as login } from '@/actions/App/Http/Controllers/AuthenticatedSes
 import { store } from '@/actions/App/Http/Controllers/RegisteredUserController';
 import AppLogo from '@/components/AppLogo.vue';
 import FormError from '@/components/FormError.vue';
-import { passwordRules, passwordStrength } from '@/lib/password';
+import { passwordError, passwordRules, passwordStrength } from '@/lib/password';
 import { buttonClass, inputClass, labelClass, mutedClass } from '@/lib/ui';
 import { home } from '@/routes';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const name = usePage().props.name;
 
@@ -21,8 +21,21 @@ const form = useForm({
 
 const rules = computed(() => passwordRules(form.password));
 const strength = computed(() => passwordStrength(form.password));
+const passwordChecked = ref(false);
+const clientPasswordError = computed(() =>
+    passwordChecked.value
+        ? (passwordError(form.password) ?? undefined)
+        : undefined,
+);
+
+function verifyPassword() {
+    if (form.password.length > 0) {
+        passwordChecked.value = true;
+    }
+}
 
 function submit() {
+    verifyPassword();
     form.post(store.url());
 }
 </script>
@@ -82,10 +95,13 @@ function submit() {
                     type="password"
                     required
                     autocomplete="new-password"
+                    :aria-invalid="Boolean(clientPasswordError)"
                     :class="inputClass"
+                    @input="verifyPassword"
+                    @blur="verifyPassword"
                 />
             </label>
-            <div class="flex flex-col gap-2">
+            <div v-if="form.password.length > 0" class="flex flex-col gap-2">
                 <p v-if="strength" class="text-sm">
                     Strength:
                     <span class="font-medium">{{ strength.label }}</span>
@@ -114,7 +130,11 @@ function submit() {
                     </li>
                 </ul>
             </div>
-            <FormError :message="form.errors.password" />
+            <div aria-live="polite">
+                <FormError
+                    :message="form.errors.password ?? clientPasswordError"
+                />
+            </div>
             <label :class="labelClass">
                 Confirm password
                 <input

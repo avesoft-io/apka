@@ -17,6 +17,17 @@ export function passwordRules(password: string): PasswordRule[] {
     ];
 }
 
+export function passwordError(password: string): string | null {
+    if (
+        password.length === 0 ||
+        passwordRules(password).every((rule) => rule.met)
+    ) {
+        return null;
+    }
+
+    return 'Use at least 8 characters, including a letter and a number.';
+}
+
 export function passwordStrength(password: string): PasswordStrength | null {
     if (password.length === 0) {
         return null;
