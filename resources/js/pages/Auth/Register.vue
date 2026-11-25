@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { create as login } from '@/actions/App/Http/Controllers/AuthenticatedSessionController';
-import { store } from '@/actions/App/Http/Controllers/RegisteredUserController';
+import {
+    email as checkEmail,
+    store,
+} from '@/actions/App/Http/Controllers/RegisteredUserController';
 import AppLogo from '@/components/AppLogo.vue';
 import FormError from '@/components/FormError.vue';
+import { passwordError, passwordStrength } from '@/lib/password';
 import { buttonClass, inputClass, labelClass, mutedClass } from '@/lib/ui';
 import { home } from '@/routes';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, useHttp, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const name = usePage().props.name;
 
@@ -17,7 +22,77 @@ const form = useForm({
     password_confirmation: '',
 });
 
+const strength = computed(() => passwordStrength(form.password));
+const passwordChecked = ref(false);
+const clientPasswordError = computed(() =>
+    passwordChecked.value
+        ? (passwordError(form.password) ?? undefined)
+        : undefined,
+);
+const confirmationChecked = ref(false);
+const clientConfirmationError = computed(() => {
+    if (
+        !confirmationChecked.value ||
+        form.password_confirmation.length === 0 ||
+        form.password_confirmation === form.password
+    ) {
+        return undefined;
+    }
+
+    return 'Passwords do not match.';
+});
+const clientEmailError = ref<string>();
+const emailCheck = useHttp<{ email: string }, { message: string | null }>({
+    email: '',
+});
+let emailCheckId = 0;
+
+function verifyPassword() {
+    if (form.password.length > 0) {
+        passwordChecked.value = true;
+    }
+}
+
+function clearEmailError() {
+    emailCheckId += 1;
+    emailCheck.cancel();
+    clientEmailError.value = undefined;
+}
+
+async function verifyEmail() {
+    if (form.email.length === 0) {
+        clearEmailError();
+
+        return;
+    }
+
+    const check = ++emailCheckId;
+    emailCheck.email = form.email;
+
+    try {
+        const response = await emailCheck.post(checkEmail.url());
+
+        if (check !== emailCheckId) {
+            return;
+        }
+
+        clientEmailError.value = response.message ?? undefined;
+    } catch {
+        if (check === emailCheckId) {
+            clientEmailError.value = undefined;
+        }
+    }
+}
+
+function verifyConfirmation() {
+    if (form.password_confirmation.length > 0) {
+        confirmationChecked.value = true;
+    }
+}
+
 function submit() {
+    verifyPassword();
+    verifyConfirmation();
     form.post(store.url());
 }
 </script>
@@ -66,29 +141,66 @@ function submit() {
                     v-model="form.email"
                     type="email"
                     required
+                    :aria-invalid="Boolean(clientEmailError)"
                     :class="inputClass"
+                    @input="clearEmailError"
+                    @blur="verifyEmail"
                 />
             </label>
-            <FormError :message="form.errors.email" />
+            <div aria-live="polite">
+                <FormError :message="form.errors.email ?? clientEmailError" />
+            </div>
             <label :class="labelClass">
                 Password
                 <input
                     v-model="form.password"
                     type="password"
                     required
+                    autocomplete="new-password"
+                    :aria-invalid="Boolean(clientPasswordError)"
                     :class="inputClass"
+                    @input="verifyPassword"
+                    @blur="verifyPassword"
                 />
             </label>
-            <FormError :message="form.errors.password" />
+            <div v-if="form.password.length > 0" class="flex flex-col gap-2">
+                <p v-if="strength" class="text-sm">
+                    Strength:
+                    <span class="font-medium">{{ strength.label }}</span>
+                </p>
+                <div
+                    class="h-1.5 overflow-hidden rounded bg-[#e3e3e0] dark:bg-[#3E3E3A]"
+                    aria-hidden="true"
+                >
+                    <div
+                        v-if="strength"
+                        class="h-full"
+                        :class="[strength.width, strength.barClass]"
+                    />
+                </div>
+            </div>
+            <div aria-live="polite">
+                <FormError
+                    :message="form.errors.password ?? clientPasswordError"
+                />
+            </div>
             <label :class="labelClass">
                 Confirm password
                 <input
                     v-model="form.password_confirmation"
                     type="password"
                     required
+                    autocomplete="new-password"
+                    :aria-invalid="Boolean(clientConfirmationError)"
                     :class="inputClass"
+                    @focus="verifyConfirmation"
+                    @input="verifyConfirmation"
+                    @blur="verifyConfirmation"
                 />
             </label>
+            <div aria-live="polite">
+                <FormError :message="clientConfirmationError" />
+            </div>
             <button
                 type="submit"
                 :class="buttonClass"
