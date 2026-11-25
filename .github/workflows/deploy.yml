@@ -1,0 +1,159 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, pdo_sqlite, sqlite3, bcmath
+          coverage: none
+
+      - name: Copy environment file
+        run: cp .env.example .env
+
+      - name: Install Composer Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run tests
+        run: php artisan test
+
+  laravel-build-and-deploy:
+    name: Build and deploy
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Composer Dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Install NPM Dependencies & Build Assets
+        run: |
+          npm install
+          npm run build
+
+      - name: Prepare Laravel Production Directories
+        run: |
+          mkdir -p storage/framework/cache/data
+          mkdir -p storage/framework/app
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p bootstrap/cache
+
+      - name: Prepare Hostinger public_html layout
+        run: |
+          # Hostinger document root is public_html itself, not public_html/public.
+          cp public/.htaccess .htaccess
+          cp public/robots.txt robots.txt
+          sed "s|__DIR__.'/../|__DIR__.'/|g" public/index.php > index.php
+          rm -rf build public_html
+          ln -sfn public/build build
+
+      - name: Remove files that should not be deployed
+        run: |
+          rm -rf node_modules tests .git .github phpunit.xml .env .env.example
+
+      # Refuse to upload unless the secret is this site's document root.
+      # A wrong value used to unpack the app into another directory and still exit green.
+      - name: Resolve Hostinger deploy path
+        env:
+          HOSTINGER_TARGET: ${{ secrets.HOSTINGER_TARGET }}
+        run: |
+          EXPECTED="domains/apka.avesoft.io/public_html"
+          if [ "$HOSTINGER_TARGET" != "$EXPECTED" ]; then
+            echo "::error::Refusing to deploy. HOSTINGER_TARGET must be exactly ${EXPECTED}. Upload was not started."
+            exit 1
+          fi
+          echo "DEPLOY_PATH=${EXPECTED}" >> "$GITHUB_ENV"
+
+      - name: Sync Laravel app via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          port: 65002
+          source: "."
+          target: ${{ env.DEPLOY_PATH }}
+          overwrite: true
+          timeout: 120s
+          command_timeout: 20m
+
+      - name: Finish deploy on server
+        uses: appleboy/ssh-action@v1.2.2
+        env:
+          DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.HOSTINGER_FTP_SERVER }}
+          username: ${{ secrets.HOSTINGER_FTP_USERNAME }}
+          password: ${{ secrets.HOSTINGER_FTP_PASSWORD }}
+          port: 65002
+          script: |
+            set -e
+            TARGET="${{ env.DEPLOY_PATH }}"
+            PHP_BIN="/opt/alt/php83/usr/bin/php"
+            echo "SSH home: $(pwd)"
+            echo "Deploy target: $TARGET"
+            if [ ! -x "$PHP_BIN" ]; then
+              echo "PHP 8.3 CLI not found at $PHP_BIN"
+              exit 1
+            fi
+            if [ ! -f "$TARGET/artisan" ]; then
+              echo "artisan not found at $TARGET"
+              ls -la
+              ls -la domains || true
+              ls -la "$TARGET" || true
+              exit 1
+            fi
+            cd "$TARGET"
+            mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs storage/app/public bootstrap/cache
+            chmod -R ug+rwx storage bootstrap/cache
+
+            rm -rf public_html
+            rm -rf build
+            ln -sfn public/build build
+            sed "s|__DIR__.'/../|__DIR__.'/|g" public/index.php > index.php
+            cp public/.htaccess .htaccess
+            cp public/robots.txt robots.txt
+
+            if [ ! -f .env ]; then
+              echo "::error::No .env in $TARGET. This is not the live site, so the deploy is failed."
+              exit 1
+            fi
+
+            "$PHP_BIN" artisan config:clear
+            "$PHP_BIN" artisan route:clear
+            "$PHP_BIN" artisan view:clear
+            "$PHP_BIN" artisan event:clear || true
+            "$PHP_BIN" artisan cache:clear || true
+            "$PHP_BIN" artisan storage:link || true
+            "$PHP_BIN" artisan --version
