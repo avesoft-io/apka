@@ -3,7 +3,7 @@ import { create as login } from '@/actions/App/Http/Controllers/AuthenticatedSes
 import { store } from '@/actions/App/Http/Controllers/RegisteredUserController';
 import AppLogo from '@/components/AppLogo.vue';
 import FormError from '@/components/FormError.vue';
-import { passwordError, passwordRules, passwordStrength } from '@/lib/password';
+import { passwordError, passwordStrength } from '@/lib/password';
 import { buttonClass, inputClass, labelClass, mutedClass } from '@/lib/ui';
 import { home } from '@/routes';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
@@ -19,7 +19,6 @@ const form = useForm({
     password_confirmation: '',
 });
 
-const rules = computed(() => passwordRules(form.password));
 const strength = computed(() => passwordStrength(form.password));
 const passwordChecked = ref(false);
 const clientPasswordError = computed(() =>
@@ -116,19 +115,6 @@ function submit() {
                         :class="[strength.width, strength.barClass]"
                     />
                 </div>
-                <ul class="flex flex-col gap-1 text-sm">
-                    <li
-                        v-for="rule in rules"
-                        :key="rule.label"
-                        :class="
-                            rule.met
-                                ? 'text-[#0f3d3e] dark:text-[#7daba8]'
-                                : 'text-[#706f6c] dark:text-[#A1A09A]'
-                        "
-                    >
-                        {{ rule.met ? 'Met' : 'Needed' }}: {{ rule.label }}
-                    </li>
-                </ul>
             </div>
             <div aria-live="polite">
                 <FormError
