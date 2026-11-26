@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Date;
  * @property int $client_id
  * @property string|null $application_number
  * @property string|null $hci_reference
+ * @property string|null $applicant_names
  * @property string $paper_number
  * @property OfficeActionType $type
  * @property CarbonInterface $mailing_date
@@ -66,6 +67,7 @@ use Illuminate\Support\Facades\Date;
     'client_id',
     'application_number',
     'hci_reference',
+    'applicant_names',
     'paper_number',
     'type',
     'mailing_date',

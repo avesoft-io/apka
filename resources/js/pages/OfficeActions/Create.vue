@@ -22,6 +22,7 @@ const form = useForm({
     new_client_name: '',
     application_number: '',
     hci_reference: '',
+    applicant_names: '',
     paper_number: '',
     type: props.types[0]?.value ?? 'SER',
     mailing_date: page.props.today,
@@ -106,6 +107,21 @@ function submit() {
             </div>
             <FormError :message="form.errors.application_number" />
             <FormError :message="form.errors.hci_reference" />
+
+            <label :class="labelClass">
+                Applicant name(s)
+                <textarea
+                    v-model="form.applicant_names"
+                    rows="3"
+                    :class="inputClass"
+                    required
+                />
+                <span :class="mutedClass">
+                    Separate each name with a comma. One name does not need a
+                    comma.
+                </span>
+            </label>
+            <FormError :message="form.errors.applicant_names" />
 
             <div class="grid gap-4 sm:grid-cols-2">
                 <label :class="labelClass">

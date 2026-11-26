@@ -4,6 +4,7 @@ export type OfficeActionSummary = {
     client_name: string;
     application_number: string | null;
     hci_reference: string | null;
+    applicant_names: string | null;
     reference: string;
     paper_number: string;
     type: string;

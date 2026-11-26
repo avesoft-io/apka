@@ -62,6 +62,7 @@ const details = useForm({
     client_id: String(props.officeAction.client_id),
     application_number: props.officeAction.application_number ?? '',
     hci_reference: props.officeAction.hci_reference ?? '',
+    applicant_names: props.officeAction.applicant_names ?? '',
     paper_number: props.officeAction.paper_number,
     type: props.officeAction.type,
     mailing_date: props.officeAction.mailing_date ?? '',
@@ -310,6 +311,9 @@ const checkingOptions = [
                     </Link>
                     · {{ officeAction.type_label }} · paper
                     {{ officeAction.paper_number }}
+                </p>
+                <p v-if="officeAction.applicant_names" :class="mutedClass">
+                    Applicants: {{ officeAction.applicant_names }}
                 </p>
                 <p v-if="officeAction.next_step" class="text-sm">
                     {{ officeAction.next_step }}
@@ -996,6 +1000,20 @@ const checkingOptions = [
                             :class="inputClass"
                         />
                     </label>
+                    <label :class="labelClass">
+                        Applicant name(s)
+                        <textarea
+                            v-model="details.applicant_names"
+                            rows="3"
+                            :class="inputClass"
+                            required
+                        />
+                        <span :class="mutedClass">
+                            Separate each name with a comma. One name does not
+                            need a comma.
+                        </span>
+                    </label>
+                    <FormError :message="details.errors.applicant_names" />
                     <label :class="labelClass">
                         Paper number
                         <input
