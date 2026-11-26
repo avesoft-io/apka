@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Date;
  * @property int $client_id
  * @property string|null $client_reference
  * @property string|null $application_number
+ * @property string|null $application_name
  * @property string|null $hci_reference
  * @property list<string>|null $applicant_names
  * @property string $paper_number
@@ -68,6 +69,7 @@ use Illuminate\Support\Facades\Date;
     'client_id',
     'client_reference',
     'application_number',
+    'application_name',
     'hci_reference',
     'applicant_names',
     'paper_number',

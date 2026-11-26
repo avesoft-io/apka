@@ -22,6 +22,7 @@ const form = useForm({
     new_client_name: '',
     client_reference: '',
     application_number: '',
+    application_name: '',
     hci_reference: '',
     applicant_names: '',
     paper_number: '',
@@ -40,6 +41,9 @@ function submit() {
         client_id: newClient.value ? null : data.client_id || null,
         new_client_name: newClient.value ? data.new_client_name : null,
         client_reference: data.client_reference || null,
+        application_number: data.application_number || null,
+        application_name: data.application_name || null,
+        hci_reference: data.hci_reference || null,
         assignee_id: props.canAssign ? data.assignee_id || null : null,
         original_deadline: data.original_deadline || null,
         internal_response_date: data.internal_response_date || null,
@@ -115,11 +119,19 @@ function submit() {
                     />
                 </label>
                 <label :class="labelClass">
+                    Application name
+                    <input
+                        v-model="form.application_name"
+                        :class="inputClass"
+                    />
+                </label>
+                <label :class="labelClass">
                     HCI reference
                     <input v-model="form.hci_reference" :class="inputClass" />
                 </label>
             </div>
             <FormError :message="form.errors.application_number" />
+            <FormError :message="form.errors.application_name" />
             <FormError :message="form.errors.hci_reference" />
 
             <label :class="labelClass">

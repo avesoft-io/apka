@@ -28,6 +28,7 @@ trait ValidatesOfficeActionDetails
             'client_id' => $clientRules,
             'client_reference' => ['nullable', 'string', 'max:100'],
             'application_number' => ['nullable', 'string', 'max:100', 'required_without:hci_reference'],
+            'application_name' => ['nullable', 'string', 'max:255'],
             'hci_reference' => ['nullable', 'string', 'max:100', 'required_without:application_number'],
             'applicant_names' => ['required', 'string', 'max:2000', new CommaSeparatedNames],
             'paper_number' => ['required', 'string', 'max:50'],
@@ -64,6 +65,7 @@ trait ValidatesOfficeActionDetails
     {
         $this->merge([
             'application_number' => $this->blankToNull('application_number'),
+            'application_name' => $this->blankToNull('application_name'),
             'hci_reference' => $this->blankToNull('hci_reference'),
             'applicant_names' => $this->blankToNull('applicant_names'),
             'original_deadline' => $this->blankToNull('original_deadline'),
