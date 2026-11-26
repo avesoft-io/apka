@@ -95,6 +95,7 @@ class OfficeActionController extends Controller
             $officeAction = OfficeAction::query()->create([
                 'organization_id' => $actor->organization_id,
                 'client_id' => $clientId,
+                'client_reference' => $details->clientReference,
                 'application_number' => $details->applicationNumber,
                 'hci_reference' => $details->hciReference,
                 'applicant_names' => $details->applicantNames,
@@ -112,6 +113,7 @@ class OfficeActionController extends Controller
 
             $activities->created($officeAction, $actor, $officeAction->client_id, [
                 'client_id',
+                'client_reference',
                 'application_number',
                 'hci_reference',
                 'applicant_names',
@@ -191,6 +193,7 @@ class OfficeActionController extends Controller
 
         $officeAction->fill([
             'client_id' => $details->clientId,
+            'client_reference' => $details->clientReference,
             'application_number' => $details->applicationNumber,
             'hci_reference' => $details->hciReference,
             'applicant_names' => $details->applicantNames,

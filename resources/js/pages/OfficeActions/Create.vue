@@ -20,6 +20,7 @@ const newClient = ref(props.clients.length === 0);
 const form = useForm({
     client_id: '' as string,
     new_client_name: '',
+    client_reference: '',
     application_number: '',
     hci_reference: '',
     applicant_names: '',
@@ -38,6 +39,7 @@ function submit() {
         ...data,
         client_id: newClient.value ? null : data.client_id || null,
         new_client_name: newClient.value ? data.new_client_name : null,
+        client_reference: data.client_reference || null,
         assignee_id: props.canAssign ? data.assignee_id || null : null,
         original_deadline: data.original_deadline || null,
         internal_response_date: data.internal_response_date || null,
@@ -59,37 +61,49 @@ function submit() {
 
         <form class="flex max-w-2xl flex-col gap-4" @submit.prevent="submit">
             <div class="flex flex-col gap-3">
-                <label v-if="clients.length > 0" :class="labelClass">
-                    Client
-                    <select
-                        v-model="form.client_id"
-                        :class="inputClass"
-                        :disabled="newClient"
-                    >
-                        <option value="">Choose a client</option>
-                        <option
-                            v-for="client in clients"
-                            :key="client.id"
-                            :value="String(client.id)"
-                        >
-                            {{ client.name }}
-                        </option>
-                    </select>
-                </label>
-                <label class="flex items-center gap-2 text-sm">
+                <label
+                    v-if="clients.length > 0"
+                    class="flex items-center gap-2 text-sm"
+                >
                     <input v-model="newClient" type="checkbox" />
                     New client
                 </label>
-                <label v-if="newClient" :class="labelClass">
-                    Client name
-                    <input
-                        v-model="form.new_client_name"
-                        :class="inputClass"
-                        required
-                    />
-                </label>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <label
+                        v-if="clients.length > 0 && !newClient"
+                        :class="labelClass"
+                    >
+                        Client name
+                        <select v-model="form.client_id" :class="inputClass">
+                            <option value="">Choose a client</option>
+                            <option
+                                v-for="client in clients"
+                                :key="client.id"
+                                :value="String(client.id)"
+                            >
+                                {{ client.name }}
+                            </option>
+                        </select>
+                    </label>
+                    <label v-else :class="labelClass">
+                        Client name
+                        <input
+                            v-model="form.new_client_name"
+                            :class="inputClass"
+                            required
+                        />
+                    </label>
+                    <label :class="labelClass">
+                        Client reference number
+                        <input
+                            v-model="form.client_reference"
+                            :class="inputClass"
+                        />
+                    </label>
+                </div>
                 <FormError :message="form.errors.client_id" />
                 <FormError :message="form.errors.new_client_name" />
+                <FormError :message="form.errors.client_reference" />
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">

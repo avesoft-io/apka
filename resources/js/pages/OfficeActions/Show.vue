@@ -60,6 +60,7 @@ const unfiled = computed(() => props.officeAction.filing_date === null);
 
 const details = useForm({
     client_id: String(props.officeAction.client_id),
+    client_reference: props.officeAction.client_reference ?? '',
     application_number: props.officeAction.application_number ?? '',
     hci_reference: props.officeAction.hci_reference ?? '',
     applicant_names: props.officeAction.applicant_names ?? '',
@@ -197,6 +198,7 @@ function saveDetails() {
         .transform((data) => ({
             ...data,
             client_id: data.client_id || null,
+            client_reference: data.client_reference || null,
             application_number: data.application_number || null,
             hci_reference: data.hci_reference || null,
             original_deadline: data.original_deadline || null,
@@ -970,22 +972,32 @@ const checkingOptions = [
                     @submit.prevent="saveDetails"
                 >
                     <h2 class="font-medium">Matter details</h2>
-                    <label :class="labelClass">
-                        Client
-                        <select
-                            v-model="details.client_id"
-                            :class="inputClass"
-                            required
-                        >
-                            <option
-                                v-for="client in clients"
-                                :key="client.id"
-                                :value="String(client.id)"
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <label :class="labelClass">
+                            Client name
+                            <select
+                                v-model="details.client_id"
+                                :class="inputClass"
+                                required
                             >
-                                {{ client.name }}
-                            </option>
-                        </select>
-                    </label>
+                                <option
+                                    v-for="client in clients"
+                                    :key="client.id"
+                                    :value="String(client.id)"
+                                >
+                                    {{ client.name }}
+                                </option>
+                            </select>
+                        </label>
+                        <label :class="labelClass">
+                            Client reference number
+                            <input
+                                v-model="details.client_reference"
+                                :class="inputClass"
+                            />
+                        </label>
+                    </div>
+                    <FormError :message="details.errors.client_reference" />
                     <label :class="labelClass">
                         Application number
                         <input

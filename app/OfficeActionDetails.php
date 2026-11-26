@@ -13,6 +13,7 @@ final class OfficeActionDetails
     public function __construct(
         public ?int $clientId,
         public ?string $newClientName,
+        public ?string $clientReference,
         public ?string $applicationNumber,
         public ?string $hciReference,
         public array $applicantNames,
@@ -34,6 +35,7 @@ final class OfficeActionDetails
         return new self(
             clientId: self::nullableInt($data['client_id'] ?? null),
             newClientName: self::nullableString($data['new_client_name'] ?? null),
+            clientReference: self::nullableString($data['client_reference'] ?? null),
             applicationNumber: self::nullableString($data['application_number'] ?? null),
             hciReference: self::nullableString($data['hci_reference'] ?? null),
             applicantNames: self::applicantNames($data['applicant_names'] ?? null),

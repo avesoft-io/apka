@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Date;
  * @property int $id
  * @property int $organization_id
  * @property int $client_id
+ * @property string|null $client_reference
  * @property string|null $application_number
  * @property string|null $hci_reference
  * @property list<string>|null $applicant_names
@@ -65,6 +66,7 @@ use Illuminate\Support\Facades\Date;
 #[Fillable([
     'organization_id',
     'client_id',
+    'client_reference',
     'application_number',
     'hci_reference',
     'applicant_names',

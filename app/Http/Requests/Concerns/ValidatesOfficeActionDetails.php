@@ -26,6 +26,7 @@ trait ValidatesOfficeActionDetails
 
         $rules = [
             'client_id' => $clientRules,
+            'client_reference' => ['nullable', 'string', 'max:100'],
             'application_number' => ['nullable', 'string', 'max:100', 'required_without:hci_reference'],
             'hci_reference' => ['nullable', 'string', 'max:100', 'required_without:application_number'],
             'applicant_names' => ['required', 'string', 'max:2000', new CommaSeparatedNames],
@@ -69,6 +70,7 @@ trait ValidatesOfficeActionDetails
             'internal_response_date' => $this->blankToNull('internal_response_date'),
             'reminder_date' => $this->blankToNull('reminder_date'),
             'client_id' => $this->filled('client_id') ? $this->integer('client_id') : null,
+            'client_reference' => $this->blankToNull('client_reference'),
             'assignee_id' => $this->filled('assignee_id') ? $this->integer('assignee_id') : null,
             'new_client_name' => $this->blankToNull('new_client_name'),
         ]);

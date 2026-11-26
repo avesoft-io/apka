@@ -30,6 +30,7 @@ class OfficeActionPresenter
             'id' => $officeAction->id,
             'client_id' => $officeAction->client_id,
             'client_name' => $officeAction->client->name,
+            'client_reference' => $officeAction->client_reference,
             'application_number' => $officeAction->application_number,
             'hci_reference' => $officeAction->hci_reference,
             'applicant_names' => $this->applicantNames($officeAction->applicant_names),
@@ -293,6 +294,7 @@ class OfficeActionPresenter
      */
     private const LABELS = [
         'client_id' => 'Client',
+        'client_reference' => 'Client reference number',
         'application_number' => 'Application number',
         'hci_reference' => 'HCI reference',
         'applicant_names' => 'Applicant names',

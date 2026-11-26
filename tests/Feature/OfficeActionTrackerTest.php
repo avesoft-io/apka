@@ -42,11 +42,13 @@ test('stores comma-separated applicant names and rejects the wrong format', func
     $this->post(route('office-actions.store'), officeActionPayload($client, [
         'paper_number' => '4',
         'applicant_names' => 'Ada Lovelace, Alan Turing',
+        'client_reference' => 'CR-1001',
     ]))->assertRedirect();
 
     $officeAction = OfficeAction::query()->where('paper_number', '4')->firstOrFail();
 
     expect($officeAction->applicant_names)->toBe(['Ada Lovelace', 'Alan Turing']);
+    expect($officeAction->client_reference)->toBe('CR-1001');
     expect(json_decode((string) $officeAction->getRawOriginal('applicant_names'), true))->toBe([
         'Ada Lovelace',
         'Alan Turing',
@@ -54,10 +56,9 @@ test('stores comma-separated applicant names and rejects the wrong format', func
 
     $this->get(route('office-actions.show', $officeAction))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where(
-            'officeAction.applicant_names',
-            'Ada Lovelace, Alan Turing',
-        ));
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('officeAction.applicant_names', 'Ada Lovelace, Alan Turing')
+            ->where('officeAction.client_reference', 'CR-1001'));
 });
 
 test('requires an application number or an HCI reference', function () {

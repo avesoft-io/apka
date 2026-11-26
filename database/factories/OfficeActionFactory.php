@@ -42,6 +42,7 @@ class OfficeActionFactory extends Factory
 
         return [
             'client_id' => Client::factory(),
+            'client_reference' => fake()->optional()->bothify('CR-####'),
             'application_number' => fake()->numerify('PH/1/####/######'),
             'hci_reference' => fake()->bothify('HCI-####'),
             'applicant_names' => [fake()->name(), fake()->name()],
