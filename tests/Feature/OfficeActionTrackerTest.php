@@ -12,6 +12,58 @@ use App\OfficeActionOutcome;
 use App\OfficeActionType;
 use Inertia\Testing\AssertableInertia as Assert;
 
+test('stores comma-separated applicant names and rejects the wrong format', function () {
+    $organization = Organization::factory()->create();
+    $user = User::factory()->for($organization)->create();
+    $client = Client::factory()->for($organization)->create();
+
+    $this->actingAs($user)->post(route('office-actions.store'), officeActionPayload($client, [
+        'applicant_names' => '',
+    ]))->assertSessionHasErrors([
+        'applicant_names' => 'Enter the applicant name or names.',
+    ]);
+
+    foreach (['Ada Lovelace; Alan Turing', "Ada Lovelace\nAlan Turing", 'Ada Lovelace,', ',Ada Lovelace', 'Ada,, Lovelace'] as $names) {
+        $this->post(route('office-actions.store'), officeActionPayload($client, [
+            'applicant_names' => $names,
+        ]))->assertSessionHasErrors([
+            'applicant_names' => 'Separate each applicant name with a comma.',
+        ]);
+    }
+
+    expect(OfficeAction::query()->count())->toBe(0);
+
+    $this->post(route('office-actions.store'), officeActionPayload($client, [
+        'applicant_names' => 'Ada Lovelace',
+    ]))->assertRedirect();
+
+    expect(OfficeAction::query()->firstOrFail()->applicant_names)->toBe(['Ada Lovelace']);
+
+    $this->post(route('office-actions.store'), officeActionPayload($client, [
+        'paper_number' => '4',
+        'applicant_names' => 'Ada Lovelace, Alan Turing',
+        'client_reference' => 'CR-1001',
+        'application_name' => 'Widget assembly',
+    ]))->assertRedirect();
+
+    $officeAction = OfficeAction::query()->where('paper_number', '4')->firstOrFail();
+
+    expect($officeAction->applicant_names)->toBe(['Ada Lovelace', 'Alan Turing']);
+    expect($officeAction->client_reference)->toBe('CR-1001');
+    expect($officeAction->application_name)->toBe('Widget assembly');
+    expect(json_decode((string) $officeAction->getRawOriginal('applicant_names'), true))->toBe([
+        'Ada Lovelace',
+        'Alan Turing',
+    ]);
+
+    $this->get(route('office-actions.show', $officeAction))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('officeAction.applicant_names', 'Ada Lovelace, Alan Turing')
+            ->where('officeAction.client_reference', 'CR-1001')
+            ->where('officeAction.application_name', 'Widget assembly'));
+});
+
 test('requires an application number or an HCI reference', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->for($organization)->create();
@@ -525,6 +577,7 @@ function officeActionPayload(Client $client, array $overrides = []): array
         'client_id' => $client->id,
         'application_number' => 'PH/1/2024/000123',
         'hci_reference' => 'HCI-1001',
+        'applicant_names' => 'Ada Lovelace, Alan Turing',
         'paper_number' => '3',
         'type' => OfficeActionType::Ser->value,
         'mailing_date' => '2026-01-05',

@@ -32,8 +32,11 @@ class OfficeActionExportController extends Controller
 
         $headers = [
             'Client',
+            'Client reference number',
             'Application number',
+            'Application name',
             'HCI reference',
+            'Applicant names',
             'Paper number',
             'Office action type',
             'Mailing date',
@@ -58,8 +61,11 @@ class OfficeActionExportController extends Controller
 
             $rows[] = [
                 $this->cell($summary['client_name'] ?? null),
+                $this->cell($summary['client_reference'] ?? null),
                 $this->cell($summary['application_number'] ?? null),
+                $this->cell($summary['application_name'] ?? null),
                 $this->cell($summary['hci_reference'] ?? null),
+                $this->cell($summary['applicant_names'] ?? null),
                 $this->cell($summary['paper_number'] ?? null),
                 $this->cell($summary['type_label'] ?? null),
                 $this->cell($summary['mailing_date'] ?? null),

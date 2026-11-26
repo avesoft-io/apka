@@ -21,8 +21,11 @@ use Illuminate\Support\Facades\Date;
  * @property int $id
  * @property int $organization_id
  * @property int $client_id
+ * @property string|null $client_reference
  * @property string|null $application_number
+ * @property string|null $application_name
  * @property string|null $hci_reference
+ * @property list<string>|null $applicant_names
  * @property string $paper_number
  * @property OfficeActionType $type
  * @property CarbonInterface $mailing_date
@@ -64,8 +67,11 @@ use Illuminate\Support\Facades\Date;
 #[Fillable([
     'organization_id',
     'client_id',
+    'client_reference',
     'application_number',
+    'application_name',
     'hci_reference',
+    'applicant_names',
     'paper_number',
     'type',
     'mailing_date',
@@ -111,6 +117,7 @@ class OfficeAction extends Model
     protected function casts(): array
     {
         return [
+            'applicant_names' => 'array',
             'type' => OfficeActionType::class,
             'mailing_date' => 'date',
             'response_period_months' => 'integer',

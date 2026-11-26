@@ -95,8 +95,11 @@ class OfficeActionController extends Controller
             $officeAction = OfficeAction::query()->create([
                 'organization_id' => $actor->organization_id,
                 'client_id' => $clientId,
+                'client_reference' => $details->clientReference,
                 'application_number' => $details->applicationNumber,
+                'application_name' => $details->applicationName,
                 'hci_reference' => $details->hciReference,
+                'applicant_names' => $details->applicantNames,
                 'paper_number' => $details->paperNumber,
                 'type' => $details->type,
                 'mailing_date' => $details->mailingDate,
@@ -111,8 +114,11 @@ class OfficeActionController extends Controller
 
             $activities->created($officeAction, $actor, $officeAction->client_id, [
                 'client_id',
+                'client_reference',
                 'application_number',
+                'application_name',
                 'hci_reference',
+                'applicant_names',
                 'paper_number',
                 'type',
                 'mailing_date',
@@ -189,8 +195,11 @@ class OfficeActionController extends Controller
 
         $officeAction->fill([
             'client_id' => $details->clientId,
+            'client_reference' => $details->clientReference,
             'application_number' => $details->applicationNumber,
+            'application_name' => $details->applicationName,
             'hci_reference' => $details->hciReference,
+            'applicant_names' => $details->applicantNames,
             'paper_number' => $details->paperNumber,
             'type' => $details->type,
             'mailing_date' => $details->mailingDate,

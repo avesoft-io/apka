@@ -60,8 +60,11 @@ const unfiled = computed(() => props.officeAction.filing_date === null);
 
 const details = useForm({
     client_id: String(props.officeAction.client_id),
+    client_reference: props.officeAction.client_reference ?? '',
     application_number: props.officeAction.application_number ?? '',
+    application_name: props.officeAction.application_name ?? '',
     hci_reference: props.officeAction.hci_reference ?? '',
+    applicant_names: props.officeAction.applicant_names ?? '',
     paper_number: props.officeAction.paper_number,
     type: props.officeAction.type,
     mailing_date: props.officeAction.mailing_date ?? '',
@@ -196,7 +199,9 @@ function saveDetails() {
         .transform((data) => ({
             ...data,
             client_id: data.client_id || null,
+            client_reference: data.client_reference || null,
             application_number: data.application_number || null,
+            application_name: data.application_name || null,
             hci_reference: data.hci_reference || null,
             original_deadline: data.original_deadline || null,
             internal_response_date: data.internal_response_date || null,
@@ -310,6 +315,12 @@ const checkingOptions = [
                     </Link>
                     · {{ officeAction.type_label }} · paper
                     {{ officeAction.paper_number }}
+                </p>
+                <p v-if="officeAction.application_name" :class="mutedClass">
+                    {{ officeAction.application_name }}
+                </p>
+                <p v-if="officeAction.applicant_names" :class="mutedClass">
+                    Applicants: {{ officeAction.applicant_names }}
                 </p>
                 <p v-if="officeAction.next_step" class="text-sm">
                     {{ officeAction.next_step }}
@@ -966,36 +977,69 @@ const checkingOptions = [
                     @submit.prevent="saveDetails"
                 >
                     <h2 class="font-medium">Matter details</h2>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <label :class="labelClass">
+                            Client name
+                            <select
+                                v-model="details.client_id"
+                                :class="inputClass"
+                                required
+                            >
+                                <option
+                                    v-for="client in clients"
+                                    :key="client.id"
+                                    :value="String(client.id)"
+                                >
+                                    {{ client.name }}
+                                </option>
+                            </select>
+                        </label>
+                        <label :class="labelClass">
+                            Client reference number
+                            <input
+                                v-model="details.client_reference"
+                                :class="inputClass"
+                            />
+                        </label>
+                    </div>
+                    <FormError :message="details.errors.client_reference" />
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <label :class="labelClass">
+                            Application number
+                            <input
+                                v-model="details.application_number"
+                                :class="inputClass"
+                            />
+                        </label>
+                        <label :class="labelClass">
+                            Application name
+                            <input
+                                v-model="details.application_name"
+                                :class="inputClass"
+                            />
+                        </label>
+                        <label :class="labelClass">
+                            HCI reference
+                            <input
+                                v-model="details.hci_reference"
+                                :class="inputClass"
+                            />
+                        </label>
+                    </div>
                     <label :class="labelClass">
-                        Client
-                        <select
-                            v-model="details.client_id"
+                        Applicant name(s)
+                        <textarea
+                            v-model="details.applicant_names"
+                            rows="3"
                             :class="inputClass"
                             required
-                        >
-                            <option
-                                v-for="client in clients"
-                                :key="client.id"
-                                :value="String(client.id)"
-                            >
-                                {{ client.name }}
-                            </option>
-                        </select>
-                    </label>
-                    <label :class="labelClass">
-                        Application number
-                        <input
-                            v-model="details.application_number"
-                            :class="inputClass"
                         />
+                        <span :class="mutedClass">
+                            Separate each name with a comma. One name does not
+                            need a comma.
+                        </span>
                     </label>
-                    <label :class="labelClass">
-                        HCI reference
-                        <input
-                            v-model="details.hci_reference"
-                            :class="inputClass"
-                        />
-                    </label>
+                    <FormError :message="details.errors.applicant_names" />
                     <label :class="labelClass">
                         Paper number
                         <input
@@ -1066,6 +1110,7 @@ const checkingOptions = [
                         />
                     </label>
                     <FormError :message="details.errors.application_number" />
+                    <FormError :message="details.errors.application_name" />
                     <FormError :message="details.errors.hci_reference" />
                     <FormError :message="details.errors.original_deadline" />
                     <button

@@ -95,6 +95,10 @@ class ActivityLogger
 
     private function normalize(mixed $value, string $field): bool|float|int|string|null
     {
+        if ($field === 'applicant_names') {
+            return $this->applicantNames($value);
+        }
+
         if ($value instanceof BackedEnum) {
             $value = $value->value;
         }
@@ -120,5 +124,34 @@ class ActivityLogger
         }
 
         return $value;
+    }
+
+    private function applicantNames(mixed $value): ?string
+    {
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+
+            if (! is_array($decoded)) {
+                return $value === '' ? null : $value;
+            }
+
+            $value = $decoded;
+        }
+
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $names = [];
+
+        foreach ($value as $name) {
+            if (! is_string($name) || $name === '') {
+                return null;
+            }
+
+            $names[] = $name;
+        }
+
+        return $names === [] ? null : implode(', ', $names);
     }
 }

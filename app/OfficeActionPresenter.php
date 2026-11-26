@@ -30,8 +30,11 @@ class OfficeActionPresenter
             'id' => $officeAction->id,
             'client_id' => $officeAction->client_id,
             'client_name' => $officeAction->client->name,
+            'client_reference' => $officeAction->client_reference,
             'application_number' => $officeAction->application_number,
+            'application_name' => $officeAction->application_name,
             'hci_reference' => $officeAction->hci_reference,
+            'applicant_names' => $this->applicantNames($officeAction->applicant_names),
             'reference' => $officeAction->referenceLabel(),
             'paper_number' => $officeAction->paper_number,
             'type' => $officeAction->type->value,
@@ -165,6 +168,18 @@ class OfficeActionPresenter
         return $history;
     }
 
+    /**
+     * @param  list<string>|null  $names
+     */
+    private function applicantNames(?array $names): ?string
+    {
+        if ($names === null || $names === []) {
+            return null;
+        }
+
+        return implode(', ', $names);
+    }
+
     private function date(mixed $value): ?string
     {
         if ($value instanceof CarbonInterface) {
@@ -280,8 +295,11 @@ class OfficeActionPresenter
      */
     private const LABELS = [
         'client_id' => 'Client',
+        'client_reference' => 'Client reference number',
         'application_number' => 'Application number',
+        'application_name' => 'Application name',
         'hci_reference' => 'HCI reference',
+        'applicant_names' => 'Applicant names',
         'paper_number' => 'Paper number',
         'type' => 'Office action type',
         'mailing_date' => 'Mailing date',

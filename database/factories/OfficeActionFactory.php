@@ -42,8 +42,11 @@ class OfficeActionFactory extends Factory
 
         return [
             'client_id' => Client::factory(),
+            'client_reference' => fake()->optional()->bothify('CR-####'),
             'application_number' => fake()->numerify('PH/1/####/######'),
+            'application_name' => fake()->optional()->words(3, true),
             'hci_reference' => fake()->bothify('HCI-####'),
+            'applicant_names' => [fake()->name(), fake()->name()],
             'paper_number' => (string) fake()->numberBetween(1, 12),
             'type' => fake()->randomElement(OfficeActionType::cases()),
             'mailing_date' => $mailing->toDateString(),
