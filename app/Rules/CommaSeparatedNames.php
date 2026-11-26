@@ -42,4 +42,28 @@ class CommaSeparatedNames implements ValidationRule
 
         return true;
     }
+
+    /**
+     * @return list<string>
+     */
+    public static function names(string $value): array
+    {
+        $parts = preg_split('/\s*,\s*/', trim($value));
+
+        if ($parts === false) {
+            return [];
+        }
+
+        $names = [];
+
+        foreach ($parts as $part) {
+            if ($part === '') {
+                return [];
+            }
+
+            $names[] = $part;
+        }
+
+        return $names;
+    }
 }

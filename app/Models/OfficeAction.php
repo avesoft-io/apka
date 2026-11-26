@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Date;
  * @property int $client_id
  * @property string|null $application_number
  * @property string|null $hci_reference
- * @property string|null $applicant_names
+ * @property list<string>|null $applicant_names
  * @property string $paper_number
  * @property OfficeActionType $type
  * @property CarbonInterface $mailing_date
@@ -113,6 +113,7 @@ class OfficeAction extends Model
     protected function casts(): array
     {
         return [
+            'applicant_names' => 'array',
             'type' => OfficeActionType::class,
             'mailing_date' => 'date',
             'response_period_months' => 'integer',

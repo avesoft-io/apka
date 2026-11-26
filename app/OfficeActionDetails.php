@@ -2,16 +2,20 @@
 
 namespace App;
 
+use App\Rules\CommaSeparatedNames;
 use InvalidArgumentException;
 
 final class OfficeActionDetails
 {
+    /**
+     * @param  list<string>  $applicantNames
+     */
     public function __construct(
         public ?int $clientId,
         public ?string $newClientName,
         public ?string $applicationNumber,
         public ?string $hciReference,
-        public string $applicantNames,
+        public array $applicantNames,
         public string $paperNumber,
         public string $type,
         public string $mailingDate,
@@ -32,7 +36,7 @@ final class OfficeActionDetails
             newClientName: self::nullableString($data['new_client_name'] ?? null),
             applicationNumber: self::nullableString($data['application_number'] ?? null),
             hciReference: self::nullableString($data['hci_reference'] ?? null),
-            applicantNames: self::requiredString($data['applicant_names'] ?? null, 'applicant_names'),
+            applicantNames: self::applicantNames($data['applicant_names'] ?? null),
             paperNumber: self::requiredString($data['paper_number'] ?? null, 'paper_number'),
             type: self::requiredString($data['type'] ?? null, 'type'),
             mailingDate: self::requiredString($data['mailing_date'] ?? null, 'mailing_date'),
@@ -66,6 +70,21 @@ final class OfficeActionDetails
         }
 
         return (int) $value;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function applicantNames(mixed $value): array
+    {
+        $string = self::nullableString(is_scalar($value) ? (string) $value : null);
+        $names = $string === null ? [] : CommaSeparatedNames::names($string);
+
+        if ($names === []) {
+            throw new InvalidArgumentException('applicant_names is required.');
+        }
+
+        return $names;
     }
 
     private static function requiredString(mixed $value, string $field): string

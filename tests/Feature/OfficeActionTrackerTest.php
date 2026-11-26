@@ -37,7 +37,7 @@ test('stores comma-separated applicant names and rejects the wrong format', func
         'applicant_names' => 'Ada Lovelace',
     ]))->assertRedirect();
 
-    expect(OfficeAction::query()->firstOrFail()->applicant_names)->toBe('Ada Lovelace');
+    expect(OfficeAction::query()->firstOrFail()->applicant_names)->toBe(['Ada Lovelace']);
 
     $this->post(route('office-actions.store'), officeActionPayload($client, [
         'paper_number' => '4',
@@ -46,7 +46,11 @@ test('stores comma-separated applicant names and rejects the wrong format', func
 
     $officeAction = OfficeAction::query()->where('paper_number', '4')->firstOrFail();
 
-    expect($officeAction->applicant_names)->toBe('Ada Lovelace, Alan Turing');
+    expect($officeAction->applicant_names)->toBe(['Ada Lovelace', 'Alan Turing']);
+    expect(json_decode((string) $officeAction->getRawOriginal('applicant_names'), true))->toBe([
+        'Ada Lovelace',
+        'Alan Turing',
+    ]);
 
     $this->get(route('office-actions.show', $officeAction))
         ->assertOk()

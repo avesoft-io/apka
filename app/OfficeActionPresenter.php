@@ -32,7 +32,7 @@ class OfficeActionPresenter
             'client_name' => $officeAction->client->name,
             'application_number' => $officeAction->application_number,
             'hci_reference' => $officeAction->hci_reference,
-            'applicant_names' => $officeAction->applicant_names,
+            'applicant_names' => $this->applicantNames($officeAction->applicant_names),
             'reference' => $officeAction->referenceLabel(),
             'paper_number' => $officeAction->paper_number,
             'type' => $officeAction->type->value,
@@ -164,6 +164,18 @@ class OfficeActionPresenter
         }
 
         return $history;
+    }
+
+    /**
+     * @param  list<string>|null  $names
+     */
+    private function applicantNames(?array $names): ?string
+    {
+        if ($names === null || $names === []) {
+            return null;
+        }
+
+        return implode(', ', $names);
     }
 
     private function date(mixed $value): ?string

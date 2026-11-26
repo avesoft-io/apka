@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('office_actions', function (Blueprint $table) {
-            $table->text('applicant_names')->nullable()->after('hci_reference');
+            $table->json('applicant_names')->nullable()->after('hci_reference');
         });
     }
 
